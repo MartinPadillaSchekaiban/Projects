@@ -1,0 +1,125 @@
+<html>
+	<head>
+		<title>NBA 2018 Finals</title>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+		<link rel="stylesheet" href="assets/css/main.css" />
+		<noscript><link rel="stylesheet" href="assets/css/noscript.css" /></noscript>
+	</head>
+	<body class="is-preload">
+
+		<!-- Header -->
+			<header id="header">
+				<a href="index.html" class="title">Portfolio</a>
+				<nav>
+					<ul>
+						<li><a href="index.html">Home</a></li>
+						<li><a href="covid.html" class="active">SQL Covid-19</a></li>
+					</ul>
+				</nav>
+			</header>
+		<!-- Wrapper -->
+			<div id="wrapper">				
+				<!-- Main -->
+					<section id="main" class="wrapper">
+						<div class="inner">
+							<h1 class="major">Covid-19 Data Exploration</h1>
+							<p style = "font-size:18px">Through this notebook you will find valuable data regarding Covid-19 decease from 2020 to 2022, with a main focus into Mexico. All data exploration was done with MS SQL</p>			
+					<section>
+                        <h2 id="shot2" class="major">Data Sources</h2>
+                        <p style = "font-size:18px">The data source of this project where downloaded from <a href="https://ourworldindata.org/covid-deaths">ourworldindata.com</a></p>	
+                        <li style = "font-size:16px"><b>CovidDeaths.csv :</b> all records from feb 2020 to july 2022 regarding covid deaths</li>
+                        <li style = "font-size:16px"><b>CovidVaccinations.csv :</b> details of all vaccination records</li>
+                        <P> </P>
+						<h2>Roadmap</h2>
+							<div class="row">
+								<div class="col-6 col-12-medium">
+									<ul>
+									<li style = "font-size:16px"><a href="#data"><u>Total Cases vs Total Deaths</u></a></li>
+									<li style = "font-size:16px"><a href="#build"><u>Total Cases vs Population</u></a></li>
+									<li style = "font-size:16px"><a href="#plot"><u>Countries with Highest Infection Rate compared to Population</u></a></li>
+									<li style = "font-size:16px"><a href="#shot"><u>Countries with Highest Death Count per Population</u></a></li>
+                                    <li style = "font-size:16px"><a href="#calc"><u>Showing contintents with the highest death count per population</u></a></li>
+                                    <li style = "font-size:16px"><a href="#calc2"><u>GLOBAL NUMBERS</u></a></li>
+							    	</ul>
+							</div>	
+					<section>
+							<div class="inner">
+								<h2 id="data" class="major">Total Cases vs Total Deaths</h2>
+								<p style = "font-size:18px">There have been around 6859970 total covid cases in Mexico and 328342 deaths. Resulting in a 4.78% death rate as of July 2022</p>
+                                <p style = "font-size:18px">The highest death rate we saw in Mexico was 12.4% in June of 2020</p>
+								<pre><code style = "font-size:14px">Select Location, date, total_cases,total_deaths, (total_deaths/total_cases)*100 as DeathPercentage
+From Portfolio..CovidDeaths
+Where location like '%mexico%'
+and continent is not null 
+order by 1,2</code></pre>
+<div class="col-12"><span class=""><img src="images/pic14.JPG" alt="" /></span></div>
+<p> </p>	
+									<h2 id="build" class="major">Total Cases vs Population</h2>
+									<p style = "font-size:18px"> Shows what percentage of population infected with Covid. As of July 2022, only 5.41% of mexican population has been infected by Covid-19. At least this is what the goverment reports. Germany reports a 37% of the population and USA a 27%</p>
+                                    <pre><code style = "font-size:14px">Select Location, date, Population, total_cases,  (total_cases/population)*100 as PercentPopulationInfected
+From Portfolio..CovidDeaths
+Where location like '%mexico%'
+order by 1,2</code></pre>
+                                    <div class="col-12"><span class=""><img src="images/pic15.JPG" alt="" /></span></div>
+<p> </p>
+									<h2 id="plot" class="major">Countries with Highest Infection Rate compared to Population</h2>
+									<p style = "font-size:18px">List of countries with the highest percent of infection on their population.</p>
+									<p style = "font-size:18px">France, Germany and South Korea really stand out, with populations over 30million and infections rates well above 35%. Is this why Mexico only shows 5%? With a population of 126 millions it could be a possibilty</p>
+                                    <pre><code style = "font-size:14px">Select Location, Population, MAX(total_cases) as HighestInfectionCount,  Max((total_cases/population))*100 as PercentPopulationInfected
+From Portfolio..CovidDeaths
+--Where location like '%mexico%'
+Group by Location, Population
+order by PercentPopulationInfected desc</code></pre>
+                                    <div class="col-12"><span class=""><img src="images/pic16.JPG" alt="" /></span></div>
+                                    <p> </p>
+                                    <h2 id="shot" class="major">Countries with Highest Death Count per Population</h2>
+									<p style = "font-size:18px">Top 10 countries with highest death count. Mexico ranking at 5 with 328,342 reported deaths</p>
+                                    <pre><code style = "font-size:14px">Select Location, MAX(cast(Total_deaths as int)) as TotalDeathCount
+From Portfolio..CovidDeaths
+Where continent is not null 
+Group by Location
+order by TotalDeathCount desc</code></pre>
+<div class="col-12"><span class=""><img src="images/pic17.JPG" alt="" /></span></div>
+<p> </p>
+<h2 id="calc" class="major">Showing contintents with the highest death count per population</h2>
+<p style = "font-size:18px">Asia has very few deaths keeping in mind their population. North america did a really bad job containing the disease</p>
+<pre><code style = "font-size:14px">Select continent, MAX(cast(Total_deaths as int)) as TotalDeathCount
+From Portfolio..CovidDeaths
+--Where location like '%states%'
+Where continent is not null 
+Group by continent
+order by TotalDeathCount desc
+</code></pre>
+<div class="col-12"><span class=""><img src="images/pic19.JPG" alt="" /></span></div>
+<p> </p>
+                                    <h2 id="calc2" class="major">Global Numbers</h2>
+									<p style = "font-size:18px">584,327,267 total cases around the world with 6,378,013 in just 2 years. Around 9 people died from covid daily for the past 2 years. Global death rate is 1.09%</p>
+                                    <pre><code style = "font-size:14px">Select SUM(new_cases) as total_cases, SUM(cast(new_deaths as int)) as total_deaths, SUM(cast(new_deaths as int))/SUM(New_Cases)*100 as DeathPercentage
+From Portfolio..CovidDeaths
+--Where location like '%states%'
+where continent is not null 
+--Group By date
+order by 1,2</code></pre>
+<div class="col-12"><span class=""><img src="images/pic18.JPG" alt="" /></span></div>
+                                    <p> </p>
+		<ul class="actions ">
+			<li><a href="#" class="button primary">BACK TOP</a></li>
+			<li><a href="index.html" class="button">PORTFOLIO</a></li>
+		</ul>
+
+</body>
+</html>
+
+
+		<!-- Scripts -->
+			<script src="assets/js/jquery.min.js"></script>
+			<script src="assets/js/jquery.scrollex.min.js"></script>
+			<script src="assets/js/jquery.scrolly.min.js"></script>
+			<script src="assets/js/browser.min.js"></script>
+			<script src="assets/js/breakpoints.min.js"></script>
+			<script src="assets/js/util.js"></script>
+			<script src="assets/js/main.js"></script>
+
+	</body>
+</html>

@@ -1,0 +1,138 @@
+<html>
+	<head>
+		<title>NBA 2018 Finals</title>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+		<link rel="stylesheet" href="assets/css/main.css" />
+		<noscript><link rel="stylesheet" href="assets/css/noscript.css" /></noscript>
+	</head>
+	<body class="is-preload">
+
+		<!-- Header -->
+			<header id="header">
+				<a href="index.html" class="title">Portfolio</a>
+				<nav>
+					<ul>
+						<li><a href="index.html">Home</a></li>
+						<li><a href="NBA.html" class="active">NBA</a></li>
+					</ul>
+				</nav>
+			</header>
+		<!-- Wrapper -->
+			<div id="wrapper">				
+				<!-- Main -->
+					<section id="main" class="wrapper">
+						<div class="inner">
+							<h1 class="major">NBA LeBrons Career</h1>
+                            <div class="col-12"><span class="image fit"><img src="images/pic11.jpg" alt="" /></span></div>		
+							<p style = "font-size:18px">Through this notebook you will find about LeBron James career performance on the NBA though the 2013 season until 2020. This project was made using Python to analyze LeBron James impact on the NBA. </p>			
+					<section>
+                        <h2 id="shot2" class="major">Data Sources</h2>
+                        <p style = "font-size:18px">The data source of this project where downloaded from Kaggle</p>	
+                        <li style = "font-size:16px"><b>games.csv :</b> all games from 2004 season to last update with the date, teams and some details like number of points, etc.</li>
+                        <li style = "font-size:16px"><b>games_details.csv :</b> details of games dataset, all statistics of players for a given game</li>
+                        <li style = "font-size:16px"><b>players.csv :</b>  players details (name)</li>
+                        <li style = "font-size:16px"><b>rankings.csv :</b> ranking of NBA given a day (split into west and east on CONFERENCE column</li>
+                        <li style = "font-size:16px"><b>teams.csv :</b> all teams of NBA</li>
+                        <P> </P>
+						<h2>Roadmap</h2>
+							<div class="row">
+								<div class="col-6 col-12-medium">
+									<ul>
+									<li style = "font-size:16px"><a href="#data"><u>First galnce at the data</u></a></li>
+									<li style = "font-size:16px"><a href="#build"><u>Lebrons PPG by season</u></a></li>
+									<li style = "font-size:16px"><a href="#plot"><u>Lebron James APG by season</u></a></li>
+									<li style = "font-size:16px"><a href="#shot"><u>Lebron James FG% by season</u></a></li>
+                                    <li style = "font-size:16px"><a href="#calc"><u>Vs rest of the league</u></a></li>
+							    	</ul>
+							</div>	
+					<section>
+							<div class="inner">
+								<h2 id="data" class="major">The Data</h2>
+								<p style = "font-size:18px"> Let's take a look at what we're working with. First we need to read all csv using Pandas. Removing all duplicates from details.csv to take a look at the data</p>
+								<pre><code style = "font-size:14px">import numpy as np 
+import pandas as pd 
+import matplotlib.pyplot as plt
+import seaborn as sns</code></pre>
+                                <pre><code style = "font-size:14px">details = details.drop_duplicates(subset=["GAME_ID", "PLAYER_NAME"])
+details.head()</code></pre>
+<div class="col-12"><span class="image fit"><img src="images/DATA.PNG" alt="" /></span></div>	
+                                <p style = "font-size:18px"> Lets isolate our data to only look at Lebron stats</p>
+                                <pre><code style = "font-size:14px">bron = details[details["PLAYER_NAME"] == "LeBron James"]
+bron.drop(["TEAM_ID", "TEAM_CITY", "PLAYER_ID", "PLAYER_NAME", "COMMENT"], axis=1, inplace=True)
+bron.head()</code></pre>
+<div class="col-12"><span class=""><img src="images/pic12.jpg" alt="" /></span></div>
+<p>	</p>
+                             </div>
+							 <section>
+								<div class="inner">
+									<h2 id="build" class="major">Lebron James PPG by season</h2>
+									<p style = "font-size:18px"> We can see how LeBron has been pretty consistan over his career, maintaining above 20PPG for more than 17 seasons.</p>
+                                    <p style = "font-size:18px"> For las 3 years we can see a small trend downwards on PPG but is he improving any other aspects of his game?</p>
+                                    <pre><code style = "font-size:14px">fig, axes = plt.subplots(1,2, figsize=(15,5))
+fig.suptitle("Bron's PPG Each Season", fontsize=20)
+sns.barplot(x=seasonal_stats["PTS"], y = seasonal_stats.index.map(str), ax=axes[0])
+sns.lineplot(y=seasonal_stats["PTS"], x = seasonal_stats.index.map(str), ax=axes[1])
+axes[1].tick_params(axis='x', labelrotation=45)</code></pre>
+                                    <div class="col-12"><span class=""><img src="images/lebrons ppg.PNG" alt="" /></span></div>
+<p> </p>
+									<h2 id="plot" class="major">Lebron James APG by season</h2>
+									<p style = "font-size:18px">Looks like Lebron might be adjusting his game to a more assisting role instead of just scoring. He has been improving his APG numbers every season</p>
+									<p style = "font-size:18px">Downward trend is still visible after year 2018, is he getting to old?</p>
+                                    <pre><code style = "font-size:14px">fig, axes = plt.subplots(1,2, figsize=(15,5))
+fig.suptitle("Bron's APG Each Season", fontsize=20)
+sns.barplot(x=seasonal_stats["AST"], y = seasonal_stats.index.map(str), ax=axes[0])
+sns.lineplot(y=seasonal_stats["AST"], x = seasonal_stats.index.map(str), ax=axes[1])
+axes[1].tick_params(axis='x', labelrotation=45)</code></pre>
+                                    <div class="col-12"><span class=""><img src="images/APG.PNG" alt="" /></span></div>
+                                    <p> </p>
+                                    <h2 id="shot" class="major">Lebron James FG% by season</h2>
+									<p style = "font-size:18px">Visualization above usefulness could probably be improved with the addition of colored shot zones that allow us to see just how well a player is shooting from certain spots on the court. To figure out what different zones we'll be able to divide the shots into, let's take a look at the different SHOT_ZONE_AREA and SHOT_ZONE_BASIC values from our dataset.</p>
+									<p style = "font-size:18px">Code will skip zones 3 to 11 as this is repetetive</p>
+                                    <pre><code style = "font-size:14px">fig, axes = plt.subplots(1,2, figsize=(15,5))
+fig.suptitle("Bron's Field Goal Percentage Each Season", fontsize=20)
+sns.barplot(x=seasonal_stats["FG_PCT"], y = seasonal_stats.index.map(str), ax=axes[0])
+sns.lineplot(y=seasonal_stats["FG_PCT"], x = seasonal_stats.index.map(str), ax=axes[1])
+axes[1].tick_params(axis='x', labelrotation=45)</code></pre>
+<div class="col-12"><span class=""><img src="images/pic13.JPG" alt="" /></span></div>
+<p> </p>
+                                    <h2 id="calc" class="major">Vs rest of the players</h2>
+									<p style = "font-size:18px">Now lets see LeBrons performance against the rest of the league accross different metrics such as FG, 3pt, rebounds and steals</p>
+                                    <p style = "font-size:18px">We can see how LeBron (Orange dot) tops almost every graph. He really stands out on his FGM and Assists</p>
+                                    <pre><code style = "font-size:14px">all_players = details[["PLAYER_NAME", "PTS", "AST", "REB", "BLK", "STL", "PF", "MIN", "FGM", "FGA", "FG3M", "FG3A", "FTM", "FTA"]]
+all_players = all_players.groupby("PLAYER_NAME").sum()
+all_players</code></pre>
+<div class="col-12"><span class=""><img src="images/OTHERPLAYERS.PNG" alt="" /></span></div>
+<p> </p>
+<pre><code style = "font-size:14px">fig, axes = plt.subplots(2,3, figsize=(15,10))
+fig.suptitle("Lebron's Stats vs Other Players Since 2003", fontsize=20)
+
+sns.scatterplot(all_players["FGM"], all_players["PTS"], ax = axes[0][0])
+sns.scatterplot(x="FGM", y="PTS", data=all_players[all_players.index == "LeBron James"], ax = axes[0][0])
+axes[0][0].title.set_text('Field Goals Made and Points')
+
+sns.scatterplot(all_players["FGM"], all_players["FGA"], ax = axes[0][1])
+sns.scatterplot(x="FGM", y="FGA", data=all_players[all_players.index == "LeBron James"], ax = axes[0][1])
+axes[0][1].title.set_text('Field Goals Made and Attempts')</code></pre>
+                                    <div class="col-12"><span class=""><img src="images/STATS.PNG" alt="" /></span></div>
+                                    <p> </p>
+		<ul class="actions ">
+			<li><a href="#" class="button primary">BACK TOP</a></li>
+			<li><a href="index.html" class="button">PORTFOLIO</a></li>
+		</ul>
+
+</body>
+</html>
+
+
+		<!-- Scripts -->
+			<script src="assets/js/jquery.min.js"></script>
+			<script src="assets/js/jquery.scrollex.min.js"></script>
+			<script src="assets/js/jquery.scrolly.min.js"></script>
+			<script src="assets/js/browser.min.js"></script>
+			<script src="assets/js/breakpoints.min.js"></script>
+			<script src="assets/js/util.js"></script>
+			<script src="assets/js/main.js"></script>
+
+	</body>
+</html>

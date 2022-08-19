@@ -1,0 +1,149 @@
+<html>
+	<head>
+		<title>NBA 2018 Finals</title>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+		<link rel="stylesheet" href="assets/css/main.css" />
+		<noscript><link rel="stylesheet" href="assets/css/noscript.css" /></noscript>
+	</head>
+	<body class="is-preload">
+
+		<!-- Header -->
+			<header id="header">
+				<a href="index.html" class="title">Portfolio</a>
+				<nav>
+					<ul>
+						<li><a href="index.html">Home</a></li>
+						<li><a href="NBAFINALS.html" class="active">NBA-2018 Finals</a></li>
+					</ul>
+				</nav>
+			</header>
+		<!-- Wrapper -->
+			<div id="wrapper">				
+				<!-- Main -->
+					<section id="main" class="wrapper">
+						<div class="inner">
+							<h1 class="major">2018 NBA Playoffs: Player Shot Charts</h1>
+							<p style = "font-size:18px"> There have been some great playoff performances by numerous key players. However, it's rather easy to be trapped in awe of performances as you watch them live while being completely oblivious to the fact that your favorite player is actually shooting a below average field goal percentage.</p>
+							<p style = "font-size:18px">In this notebook, we'll take a look at certain players' offensive performance by creating go-to visualization: The shot chart. This notebook is largely inspired from the post at https://moderndata.plot.ly/nba-shots-analysis-using-plotly-shapes/, and the first shot chart built here closely follows the process from that post. After building the basic chart that plots shots on the court, we'll then look to improve on it by adding colored shot zones.</p>				
+					<section>
+						<h2>Roadmap</h2>
+							<div class="row">
+								<div class="col-6 col-12-medium">
+									<ul>
+									<li style = "font-size:16px"><a href="#data"><u>The data</u></a></li>
+									<li style = "font-size:16px"><a href="#build"><u>Building the court</u></a></li>
+									<li style = "font-size:16px"><a href="#plot"><u>Plotting the shots</u></a></li>
+									<li style = "font-size:16px"><a href="#shot"><u>Adding shot zones</u></a></li>
+									<li style = "font-size:16px"><a href="#calc"><u>Calculating the Baseline FG% for Each Shot Zone</u></a></li>
+									<li style = "font-size:16px"><a href="#help"><u>Helpful Functions</u></a></li>
+									<li style = "font-size:16px"><a href="#shot2"><u>A Shot Chart with Zones</u></a></li>
+									<li style = "font-size:16px"><a href="#shot3"><u>All shots made by each team</u></a></li>
+									<li style = "font-size:16px"><a href="#perf"><u>View of key players performance</u></a></li>
+							    	</ul>
+							</div>	
+					<section>
+							<div class="inner">
+								<h2 id="data" class="major">The Data</h2>
+								<p style = "font-size:18px"> We'll be using 2018 playoff shot data taken from http://stats.nba.com/ to be construct our visualizations. Let's take a look at what we're working with.</p>
+								<pre><code style = "font-size:14px">import pandas as pd
+import numpy as np
+import matplotlib
+import seaborn as sns</code></pre>
+                                <pre><code style = "font-size:14px">all_shots_df = pd.read_csv('C:/Users/Martin Padilla/playoff_shots.csv', sep=',')
+all_shots_df
+	
+nba_df = pd.read_csv('C:/Users/Martin Padilla/playoff_shots.csv')
+nba_df.head()</code></pre>
+                                <img src="images/pic07.jpg" class="centerImage" alt="CH Logo">
+                                <p style = "font-size:18px">Our data contains info on 13470 shots. For now let's isolate the data to our players of interest, the more impactful players in this year's NBA Finals.</p>
+                                <pre><code style = "font-size:14px">shots_df = all_shots_df[(all_shots_df.PLAYER_NAME == 'Stephen Curry') | # Golden State Warriors
+	(all_shots_df.PLAYER_NAME == 'Kevin Durant') |
+	(all_shots_df.PLAYER_NAME == 'Klay Thompson') |
+	(all_shots_df.PLAYER_NAME == 'Draymond Green') |
+	(all_shots_df.PLAYER_NAME == 'LeBron James') | # Cleveland Cavaliers
+	(all_shots_df.PLAYER_NAME == 'Kevin Love') |
+	(all_shots_df.PLAYER_NAME == 'Jeff Green') |
+	(all_shots_df.PLAYER_NAME == 'George Hill')]
+shots_df
+</code></pre>
+<div class="col-12"><span class=""><img src="images/pic08.jpg" alt="" /></span></div>
+<p>	</p>
+                             </div>
+							 <section>
+								<div class="inner">
+									<h2 id="build" class="major">Building the Court</h2>
+									<p style = "font-size:18px">With the help of Plotly shapes we'll be able to build the NBA court on our plot. All of these shapes were found from the post at https://moderndata.plot.ly/nba-shots-analysis-using-plotly-shapes/.</p>
+									<h2 id="plot" class="major">Plotting the Shots</h2>
+									<p style = "font-size:18px">With the court's shapes in place we can now use our trusty data to create our visualization, with the option to view the shot chart of any of the 8 impact players.</p>
+
+<iframe src="images/file.html" height="700" width="700"frameBorder="0"></iframe>
+
+<h2 id="shot" class="major">Adding Shot Zones</h2>
+									<p style = "font-size:18px">Visualization above usefulness could probably be improved with the addition of colored shot zones that allow us to see just how well a player is shooting from certain spots on the court. To figure out what different zones we'll be able to divide the shots into, let's take a look at the different SHOT_ZONE_AREA and SHOT_ZONE_BASIC values from our dataset.</p>
+									<p style = "font-size:18px">Code will skip zones 3 to 11 as this is repetetive</p>
+
+<iframe src="images/file2.html" height="700" width="700"frameBorder="0"></iframe>
+
+<h2 id="calc" class="major">Calculating the Baseline FG% for Each Shot Zone</h2>
+									<p style = "font-size:18px">Because we'll be adding colored shot zones to the new plot, we need a way to figure out what should be considered a "hot" FG% (red-shaded) and what should be considered a "cold" FG% (blue-shaded). The way we can determine such a baseline is by using the average FG% in each of these zones among all players throughout the 2018 playoffs. Anything above this average will be considered hot and anything below will be considered cold.</p>
+
+	<pre><code style = "font-size:14px">League Average FG% by Zone
+center_3: 32.11%
+left_center_3: 35.9%
+right_center_3: 34.16%
+left_corner_3: 35.07%
+right_corner_3: 37.14%
+center_mid: 45.69%
+left_center_mid: 39.55%
+right_center_mid: 44.03%
+left_mid: 40.17%
+right_mid: 45.63%
+paint: 35.81%
+restricted_area: 70.34%</code></pre>
+
+<h2 id="help" class="major">Helpful Functions</h2>
+									<p style = "font-size:18px">In order to help us craft our upgraded shot chart with colored zones, it's probably a good idea to have a few functions to help us out. First, we need one that will tell us what a given player's FG% is in each of the zones. This will help us appropriately color each of the player's shot zones.</p>
+	<p style = "font-size:18px">Once we have a means of getting the player shot zone field goal percentages, we can then run each FG% through a function that returns a reasonable color from the hot/cold colorscale.</p>										
+	<pre><code style = "font-size:14px">def getZoneColor(zone_name, pct):
+    if (pct is None):
+        return (184,184,184,0.5)
+    else:
+        cmap = matplotlib.cm.get_cmap('seismic')
+        my_cmap = cmap(np.arange(cmap.N))
+        my_cmap[:,-1] = np.concatenate(((np.linspace(0.8, 0.2, int(cmap.N/2)), np.linspace(0.2, 0.8, int(cmap.N/2)))))
+        cmap = matplotlib.colors.ListedColormap(my_cmap)
+        rgba = cmap(0.5 + ((pct - league_averages[zone_name])/league_averages[zone_name]/2))            
+        return rgba</code></pre>
+
+		<h2 id="shot2" class="major">A Shot Chart with Zones</h2>
+		<p style = "font-size:18px">With everything prepped we can now create a more helpful shot chart with hot/cool zones. (RED=good, BLUE=bad)</p>
+		<iframe src="images/file3.html" height="700" width="700"frameBorder="0"></iframe>
+			
+		<h2 id="shot3" class="major">All shots made by each team</h2>
+		<img src="images/pic09.jpg" class="centerImage" alt="CH Logo">
+<P>	</P>
+		<h2 id="perf" class="major">View of key players performance</h2>
+		<p style = "font-size:18px">This analysis takes a look at some of the greatest teams of all time, and tracks the development of the core players who would grow together. An interactive Plotly plot is created that'll allow us to isolate each team and their players, see each player's rise and fall across various statistical categories, and analyze how it all relates to the team's rise and fall in season record and playoff success.</p>
+	    <iframe src="images/file4.html" height="650" width="1200"frameBorder="0"></iframe>
+
+		<ul class="actions">
+			<li><a href="#" class="button primary">BACK TOP</a></li>
+			<li><a href="index.html" class="button">PORTFOLIO</a></li>
+		</ul>
+
+</body>
+</html>
+
+
+		<!-- Scripts -->
+			<script src="assets/js/jquery.min.js"></script>
+			<script src="assets/js/jquery.scrollex.min.js"></script>
+			<script src="assets/js/jquery.scrolly.min.js"></script>
+			<script src="assets/js/browser.min.js"></script>
+			<script src="assets/js/breakpoints.min.js"></script>
+			<script src="assets/js/util.js"></script>
+			<script src="assets/js/main.js"></script>
+
+	</body>
+</html>
