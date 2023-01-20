@@ -1,0 +1,517 @@
+<html>
+	<head>
+		<title>Transportation</title>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+		<link rel="stylesheet" href="assets/css/main.css" />
+		<noscript><link rel="stylesheet" href="assets/css/noscript.css" /></noscript>
+	</head>
+	<body class="is-preload">
+
+		<!-- Header -->
+			<header id="header">
+				<a href="index.html" class="title">Portfolio</a>
+				<nav>
+					<ul>
+						<li><a href="index.html">Home</a></li>
+						<li><a href="CokeEast.html" class="active">Transportation</a></li>
+					</ul>
+				</nav>
+			</header>
+		<!-- Wrapper -->
+			<div id="wrapper">				
+				<!-- Main -->
+					<section id="main" class="wrapper">
+						<div class="inner">
+							<h1 class="major">Forecasting and visualizations on logistics</h1>
+							<p style = "font-size:18px">In this notebook, we'll take a look at trends for 2021 and 2022 and try to forecast shipment volume for 2023.</p>				
+					<section>
+						<h2>Roadmap</h2>
+							<div class="row">
+								<div class="col-6 col-12-medium">
+									<ul>
+									<li style = "font-size:16px"><a href="#data"><u>The data</u></a></li>
+									<li style = "font-size:16px"><a href="#build"><u>Total shipments by month for 2021 and 2022</u></a></li>
+									<li style = "font-size:16px"><a href="#plot"><u>TOP 25 Receiving locations</u></a></li>
+									<li style = "font-size:16px"><a href="#shot"><u>Plotting a map with all shipments</u></a></li>
+									<li style = "font-size:16px"><a href="#calc"><u>Applying angles with a Radar chart</u></a></li>
+									<li style = "font-size:16px"><a href="#help"><u>Forecasting using SARIMA model</u></a></li>
+									<li style = "font-size:16px"><a href="#shot2"><u>Decomposing and seasonality</u></a></li>
+									<li style = "font-size:16px"><a href="#shot3"><u>Comparing forecast vs observed values</u></a></li>
+									<li style = "font-size:16px"><a href="#perf"><u>Forecasting the following 6 months</u></a></li>
+							    	</ul>
+							</div>	
+					<section>
+							<div class="inner">
+								<h2 id="data" class="major">The Data</h2>
+                                <p style = "font-size:18px; line-height:.1;"> We'll be using 2021-2022 data to construct our visualizations. Lets take a look at what we're working with.</p>
+                                <p style = "font-size:18px; line-height:.1;"> First we need to import all necesary libraries.</p>                                
+								<pre><code style = "font-size:12px">import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+import matplotlib.ticker as ticker
+from PIL import Image
+import plotly.graph_objects as go
+import plotly.io as pio
+import string
+import plotly.colors as pc
+import numpy as np
+from sklearn.linear_model import LinearRegression
+from sklearn.metrics import mean_squared_error
+from sklearn.model_selection import train_test_split
+import itertools
+from pylab import rcParams
+import statsmodels.api as sm</code></pre>
+                                <pre><code style = "font-size:12px">df = pd.read_excel('OTMTop25.xlsx')
+df.dropna(inplace=True)
+df['Start Time'] = df['Start Time'].astype(str)
+df['Start Time'] = df['Start Time'].str.split().apply(lambda x: ' '.join(x[:2]))
+df.head()</code></pre>
+                                <img src="images/dfOTM.png" class="centerImage" alt="CH Logo">
+                                <p style = "font-size:18px">Our data contains info on 27636 entries. Now lets create a list for all destinations and split the Start Time column into Year,YM and Month</p>
+                                <pre><code style = "font-size:12px">df['Dest Location Name'].nunique()
+list_scode = list(set(df['Dest Location Name']))
+list_scode
+                                    
+list_add = list(set(df['Dest Location Name']))
+list_YM = [i.split(" ")[0][:-3] for i in  list(df['Start Time'])]
+list_Year = [i.split(" ")[0][0:4] for i in  list(df['Start Time'])]
+list_Month = [i.split(" ")[0][5:7] for i in  list(df['Start Time'])]
+                                    
+df['YM'] = list_YM
+df['Year'] = list_Year
+df['Month'] = list_Month
+                                    
+# Group the 'PK' column by the ['Dest Location Name', 'YM', 'Year', 'Month'] columns and apply the count() function
+df_monthly = df.groupby(['Dest Location Name','YM', 'Year', 'Month'])['PK'].count()
+                                    
+# Reset the index and rename the index column to 'PK'
+df_monthly = df_monthly.reset_index(name='PK')
+print(df_monthly)
+</code></pre>
+<pre><code style = "font-size:12px">df_monthly3 = df.groupby(['Year','YM','Month'])['PK'].count()
+df_monthly3 = df_monthly3.reset_index(name='PK')
+df_monthly3.head()</code>
+</div>
+							 <section>
+                                <div class="inner">
+									<h2 id="build" class="major">Total shipments by month for 2021 and 2022</h2>
+                                    <p style = "font-size:18px; line-height:1;">The graph illustrates the monthly total of shipments for 2021 and 2022. It shows a pattern where shipments increase during the summer months and decrease in the winter. We plan to confirm this hypothesis by using a SARIMAX model to predict future years' shipments.</p>
+                                </div>
+                                <div class="row">
+                                    <div class="col-6 col-12-medium">
+                                        <ul class="actions">
+								        	<pre><code style = "font-size:14px">fig, ax = plt.subplots(figsize=(10,5))
+sns.barplot(x='Month', y='PK', hue='Year', data=df_monthly3,palette='viridis')
+                                        
+plt.title('Count of shipments over Months, Stacked by Year')
+ax.set_ylabel('Amount of shipments')
+ax.set_xlabel('Months')
+plt.show()
+</code>
+                                        </ul>
+                                    </div>
+                                    <iframe src="images/otm2.png" height="350" width="700"frameBorder="0"></iframe>
+                                </div>
+                                <div>
+                                <h2 id="plot" class="major">Top 25 Receiving locations</h2>
+                                <p style = "font-size:18px; line-height:1;">The graph depicts the top 25 destinations with the most shipments over time, with CCBC South Metro being the most frequently used lane. It also highlights a trend of increased volume during the summer months. In 2021, the shipment trends for many destinations appear similar, but in 2022, the lines are more divergent and difficult to distinguish.</p>
+                                <pre><code style = "font-size:14px">df_22 = df_monthly[df_monthly['Year']=='2022']
+
+sns.set_style('darkgrid')
+sns.set(rc={'figure.figsize':(28,10)})
+                                    
+ax = sns.lineplot(data=df_monthly, x ='YM', y = 'PK',
+                  hue='Dest Location Name', palette='viridis',
+                  legend='full', lw=3)
+                                    
+ax.xaxis.set_major_locator(ticker.MultipleLocator(4))
+plt.legend(bbox_to_anchor=(1, 1))
+plt.ylabel('Shipments')
+plt.xlabel('Year-Month')
+plt.title('Shipments by top 25 destinations.')
+plt.savefig('shipments_by_destination.png',bbox_inches='tight')
+plt.show()</code>
+</pre>
+                                <iframe src="images/otm3.png" height="450" width="1350"frameBorder="0"></iframe>
+                            </div>
+                            <p></p>
+
+<h2 class="major">Comparing one by one with Small Multiple Time Series.</h2>
+									<p style = "font-size:18px">With the Seaborn library, we can do the small multiple time series. The idea behind these plots is to plot each line one by one while still comparing them with the silhouette of the other lines. The code on the official website link is here.</p>
+                                    <p style = "font-size:18px">You can zoom into the image to get a better look at each plot.</p>
+                                    <div class="row">
+                                        <div class="col-6 col-12-medium">
+                                            <ul class="actions">
+                                                <pre><code style = "font-size:14px">g = sns.relplot(data = df_monthly, x = "YM", y = "PK",
+col = "Dest Location Name", hue = "Dest Location Name",
+kind = "line", palette = "Spectral",   
+linewidth = 4, zorder = 5,
+ol_wrap = 5, height = 3, aspect = 1.5, legend = False
+)
+                                                                            
+for time, ax in g.axes_dict.items():
+    ax.text(.1, .85, time,
+        transform = ax.transAxes, fontweight="bold"
+           )
+    sns.lineplot(data = df_monthly, x = "YM", y = "PK", units="Dest Location Name",
+                estimator = None, color= ".7", linewidth=1, ax=ax
+                )
+                                                                            
+ax.set_xticks('')
+g.set_titles("")
+g.set_axis_labels("", "Shipments")
+g.tight_layout()
+plt.savefig('otm4',bbox_inches='tight')
+plt.show()</code>
+                                            </ul>
+                                        </div>
+                                        <iframe src="images/otm4.png" height="700" width="700"frameBorder="0"></iframe>
+                                    </div>
+
+<h2 class="major">Fancy the bar plot with Circular Bar Plot (Race Track Plot)</h2>
+									<p style = "font-size:18px">The concept of a Circular Bar Plot (aka Race Track Plot) is so simple because it is just bar plots in a circle. We can plot Circular Bar Plot monthly and then make a photo collage to compare the process along the time.</p>
+                                    <p style = "font-size:18px">The picture below shows an example of a Circular Bar Plot we are going to create. The disadvantage of this chart is that it is hard to compare between categories. By the way, it is a good choice for getting attention with an eye-catching effect.</p>
+                                    <div class="row">
+                                        <div class="col-6 col-12-medium">
+                                            <ul class="actions">
+                                    <pre><code style = "font-size:14px">max_val = max(df_19['PK'])*1.001        #set max value
+pal = list(sns.color_palette(palette='viridis', n_colors=len(list_add)).as_hex())
+        
+def circular_bar(input_df, column_name, title):
+plt.gcf().set_size_inches(12, 12)
+ax = plt.subplot(projection='polar')
+input_df.reset_index(inplace=True, drop=True)
+for i in range(len(input_df)):
+    ax.barh(i, input_df[column_name][i]*2*np.pi/max_val, 
+    label=input_df['Dest Location Name'][i], color=pal[i])
+        
+ax.set_theta_zero_location('N')
+ax.set_theta_direction(1)
+ax.set_rlabel_position(0)
+ax.set_thetagrids([], labels=[])
+ax.set_rgrids(range(len(input_df)), labels= input_df['Dest Location Name'])
+        
+ax = plt.subplot(projection='polar')
+plt.title("Average PM2.5 // " + title)
+return ax</code></pre>
+</ul>
+</div>
+<iframe src="images/cir_bar_4.png" height="550" width="550"frameBorder="0"></iframe>
+                                    </div>
+<pre><code style = "font-size:14px">list_month19 = list(set(df_19['Month']))
+list_YM19 = list(set(df_19['YM']))
+list_YM19.sort()
+listdf_monthly19 = [df_19[df_19['Month']==str(i)] for i in list_month19]
+    
+keep_sname = []
+order = range(len(listdf_monthly19))
+for i in order:
+    circular_bar(listdf_monthly19[i],'PK', list_YM19[i])
+    keep_sname.append('cir_bar_' + str(i) + '.png')
+    plt.savefig('cir_bar_' + str(i) + '.png')
+    plt.show()</code></pre>
+    <p style = "font-size:18px">We can create a photo collage of the selected months, in this case im plotting shipments from January to June. Lets take a look. We can clearly see who is the top location for each month.</p>
+    <p style = "font-size:18px">To save the plot as a collage I created the following function get_collage</p>
+    <div class="row">
+        <div class="col-6 col-12-medium">
+            <ul class="actions">
+    <iframe src="images/Collage_cir_bar.jpg" height="600" width="700"frameBorder="0"></iframe>
+</ul></div>
+<pre><code style = "font-size:14px">def get_collage(cols_n, rows_n, width, height, input_sname, save_name):
+c_width = width//cols_n
+c_height = height//rows_n
+size = c_width, c_height
+new_im = Image.new('RGB', (width, height))
+ims = []
+for p in input_sname:
+    im = Image.open(p)
+    im.thumbnail(size)
+    ims.append(im)
+i, x, y = 0,0,0
+for col in range(cols_n):
+    for row in range(rows_n):
+        print(i, x, y)
+         new_im.paste(ims[i], (x, y))
+        i += 1
+         y += c_height
+     x += c_width
+    y = 0
+new_im.save(save_name)
+    
+get_collage(3, 2, 2592, 3456, keep_sname, 'Collage_cir_bar.jpg')</code></pre>
+</div>
+
+
+<h2 class="major">Looking for a correlation between shipment distance and cost</h2>
+	<p style = "font-size:18px">First lets re-arrenge our data and group shipments by Source-Destination-Distance and YearMonth</p>
+	<p style = "font-size:18px">Below plot shows a strong correlation between distance and cost, as to be expected. But we can find some outliers such as one showing 1500 miles and the top cost of 7k, I assume this could be because of accessorial charges added into the load.</p>										
+    <div class="row">
+        <div class="col-6 col-12-medium">
+            <ul class="actions">
+    <pre><code style = "font-size:14px">sns.set_style('darkgrid')
+sns.set(rc={'figure.figsize':(14,8)})
+        
+sns.relplot(x="Distance", y="Total Cost", hue="Source City", size="Stops",
+            sizes=(40, 400), alpha=.5, palette="viridis",
+            height=6, data=df_monthlyCost)
+        
+plt.ylabel('Total Cost')
+plt.xlabel('Distance')
+plt.show()
+
+
+
+
+
+</code></pre>
+</ul></div>
+<iframe src="images/otm5.png" height="600" width="700"frameBorder="0"></iframe>
+    </div>
+
+
+		<h2 id="shot" class="major">Plotting a map with all shipments</h2>
+		<p style = "font-size:18px">With everything prepped we can now create a more helpful map to visualize every shipment lane, you can zoom and filter using the left panel.</p>
+        <pre><code style = "font-size:14px">data = pd.read_excel('OTMMap.xlsx')
+data['city_pair'] = data['Source City'].str.title() + ' - ' + data['Dest City'].str.title()
+Start_Lat = data['Start_Lat']
+Start_Lng = data['Start_Lng']
+End_Lat = data['End_Lat']
+End_Lng = data['End_Lng']
+PK = data['PK']
+            
+mean_lat = data['Start_Lat'].mean()
+mean_lng = data['Start_Lng'].mean()
+            
+fig = go.Figure()
+            
+color_mapping = {'CHATTANOOGA': pc.sequential.Viridis[2], 'BATON ROUGE': pc.sequential.Viridis[5]}
+def add_trace(row):
+    source_city = row['Source City']
+    color = color_mapping.get(source_city, 'black')
+    fig.add_trace(go.Scattermapbox(
+        mode = "markers+lines",
+        lat = [row.Start_Lat, row.End_Lat],
+        lon = [row.Start_Lng, row.End_Lng],
+        marker = {'size': 10},
+        line = {'width': row.PK / 100, 'color': color}))
+            
+data.apply(add_trace, axis=1)
+                
+fig.update_layout(
+    legend={'itemsizing': 'constant', 'itemwidth': 50},
+    margin ={'l':0,'t':0,'b':0,'r':0},
+    mapbox = {
+        'center': {'lon': mean_lng, 'lat': mean_lat},
+        'style': "open-street-map",
+        'zoom': 3.7})
+            
+for i, row in data.iterrows():
+    fig.data[i].name = row['city_pair']
+            
+pio.write_html(fig, file='figure2.html', auto_open=True)</code></pre>
+		<iframe src="images/figure2.html" height="700" width="1400"frameBorder="0"></iframe>
+			<p></p>
+		<h2 id="calc" class="major">Applying angles with a Radar chart</h2>
+        <p style = "font-size:18px">We can set the angular axis on the scatter plot in Plotly to create an interactive Radar Chart. Each month will be selected as a variable on the circle. For example, in this article, we will create a radar chart comparing the average monthly shipments of the 25 destinations in 2022.</p>
+		<p style = "font-size:18px">Create Radar Chart. A good thing about using Plotly is that the Radar chart is interactive. So we can easily filter the chart.</p>
+		<iframe src="images/figure3.html" height="900" width="900"frameBorder="0"></iframe>
+
+
+
+
+
+
+
+
+
+
+
+<P>	</P>
+		<h2 id="help" class="major">Forecasting using SARIMA model</h2>
+		<p style = "font-size:18px">This analysis takes a look at some of the greatest teams of all time, and tracks the development of the core players who would grow together. An interactive Plotly plot is created that'll allow us to isolate each team and their players, see each player's rise and fall across various statistical categories, and analyze how it all relates to the team's rise and fall in season record and playoff success.</p>
+        <div class="row">
+            <div class="col-6 col-12-medium">
+                <ul class="actions">
+<pre><code style = "font-size:14px">dfLR = pd.read_excel('OTMAllData.xlsx')
+
+dfLR.dropna(inplace=True)
+dfLR['Start Time'] = dfLR['Start Time'].astype(str)
+dfLR['Start Time'] = dfLR['Start Time'].str.split().apply(lambda x: ' '.join(x[:2]))
+    
+# Split the 'Start Time' column into the 'YM', 'Year', and 'Month' columns
+list_YM = [i.split(" ")[0][:-3] for i in  list(dfLR['Start Time'])]
+list_Year = [i.split(" ")[0][0:4] for i in  list(dfLR['Start Time'])]
+list_Month = [i.split(" ")[0][5:7] for i in  list(dfLR['Start Time'])]
+    
+dfLR['YM'] = list_YM
+dfLR['Year'] = list_Year
+dfLR['Month'] = list_Month
+dfLR.head()
+dfLR = dfLR.groupby(['YM', 'Year', 'Month'])['PK'].count()
+dfLR = dfLR.reset_index(name='PK')
+dfLR['YM'] = pd.to_datetime(dfLR['YM'], format='%Y-%m')
+    
+dfLR = dfLR[(dfLR['YM'].dt.year == 2021) | (dfLR['YM'].dt.year == 2022)]
+dfLR = dfLR.sort_values('YM')
+dfLR.isnull().sum()
+dfLR = dfLR.groupby('YM')['PK'].sum().reset_index()
+dfLR = dfLR.set_index('YM')
+dfLR = dfLR.dropna()
+    
+y = dfLR['PK'].resample('MS').mean()
+y['2021': ]
+
+rcParams['figure.figsize'] = 18,8
+decomposition = sm.tsa.seasonal_decompose(y,model='additive')
+fig = decomposition.plot()
+plt.show()</code></pre>
+                </ul>
+            </div>
+            <iframe src="images/otm6.JPG" height="700" width="700"frameBorder="0"></iframe>
+        </div>
+        <h2 id="shot2" class="major">Decomposing and seasonality</h2>
+        <div class="row">
+            <div class="col-6 col-12-medium">
+                <ul class="actions">
+        <p style = "font-size:18px">First we are going to decompose and plot the data, as we can see the first plot is the observed shipments from 2021-2022, the second plot shows the trend, so we can identify there is a trend going down, third plot shows the seasonality which is very present in this data, as we can see it is a constant up on summer and down for winter.</p>
+    </ul>
+</div>
+<pre><code style = "font-size:14px">rcParams['figure.figsize'] = 18,8
+decomposition = sm.tsa.seasonal_decompose(y,model='additive')
+fig = decomposition.plot()
+plt.savefig('otm7.png',bbox_inches='tight')
+plt.show()</code></pre>
+</div>
+<iframe src="images/otm7.png" height="700" width="1400"frameBorder="0"></iframe>
+<h2 class="major">Creating all possible combinations for SARIMAX in pdq combined with seasonal_pdq</h2>
+<p style = "font-size:18px">Performe grid search to find the best possible parameters for this model</p>
+<div class="row">
+    <div class="col-6 col-12-medium">
+        <ul class="actions">
+            <pre><code style = "font-size:14px">p = d = q = range(0,2)
+pdq = list(itertools.product(p, d, q))
+seasonal_pdq = [(x[0], x[1] ,x[2], 12) for x in list(itertools.product(p, d, q))]
+print('Examples of parameter combinations for seasonal ARIMA...')
+print('SARIMAX: {} x {}'.format(pdq[1], seasonal_pdq[1]))
+print('SARIMAX: {} x {}'.format(pdq[1], seasonal_pdq[2]))
+print('SARIMAX: {} x {}'.format(pdq[2], seasonal_pdq[3]))
+print('SARIMAX: {} x {}'.format(pdq[2], seasonal_pdq[4]))</code></pre>
+        </ul>
+    </div>
+    <iframe src="images/otm10.JPG" height="200" width="500"frameBorder="0"></iframe>
+</div>
+<p style = "font-size:18px">Now we are going to fit each combination into a model with the same data frame, and this results in the AIC score. The AIC scores is a very important value, which shows the best model according to the lowest AIC score.</p>
+<p style = "font-size:18px">We are going to select the model with the following parameters, ARIMA(0, 0, 1)x(1, 0, 0, 12)12</p>
+
+<div class="row">
+    <div class="col-6 col-12-medium">
+        <ul class="actions">
+            <pre><code style = "font-size:14px">for param in pdq:
+    for param_seasonal in seasonal_pdq:
+        try:
+        mod = sm.tsa.statespace.SARIMAX(y,
+                                      order=param,
+                                      season_order=param_seasonal,
+                                      enforce_stationarity=False,
+                                      enforce_invertibility=False)
+        results = mod.fit()
+        print('ARIMA{}x{}12 - AIC:{}'.format(param, param_seasonal,results.aic))
+    except:
+        continue</code></pre>
+        </ul>
+    </div>
+    <iframe src="images/otm11.JPG" height="700" width="600"frameBorder="0"></iframe>
+</div>
+<h2 class="major">Now we gonna fit the model with these parameters to the data.</h2>
+<p style = "font-size:18px">We can see the table of coefficients from the statistical model. The table includes the coefficient (coef) for each variable in the model, the standard error (std err) of the coefficient estimate, the z-score (z) and corresponding p-value (P>|z|) for each coefficient, and the 95% confidence intervals (CIs) for each coefficient represented by [0.025, 0.975]. The variables in the model are "ma.L1" (moving average term), "ar.S.L12" (autoregressive term) and "sigma2" (the residual variance term). The coefficients in this table suggest that ma.L1 does not have a significant effect on the model (p-value of 0.498 > 0.05), ar.S.L12 has a large positive effect on the model (p-value of 0.000 < 0.05) and sigma2 has a moderate effect on the model (p-value of 0.075 > 0.05).</p>
+<div class="row">
+    <div class="col-6 col-12-medium">
+        <ul class="actions">
+<iframe src="images/otm12.JPG" height="200" width="700"frameBorder="0"></iframe>
+</ul>
+</div>
+<pre><code style = "font-size:14px">mod = sm.tsa.statespace.SARIMAX(y,
+                                                order=(0,0,1),
+                                                seasonal_order=(1,0,0,12),
+                                                enforce_stationarity=False,
+                                                enforce_invertibility=False)
+results = mod.fit()
+print(results.summary().tables[1])</code></pre>
+</div>
+<h2 id="shot3" class="major">Comparing forecast vs observed values</h2>
+<p style = "font-size:18px">Below plot shows observed values in black and forecasted in green, as we can see they are closely modelled</p>
+<div class="row">
+    <div class="col-6 col-12-medium">
+        <ul class="actions">
+<iframe src="images/otm8.png" height="300" width="700"frameBorder="0"></iframe>
+</ul>
+</div>
+<pre><code style = "font-size:14px">from cycler import cycler
+rcParams['axes.prop_cycle'] = cycler(color='kg')
+pred = results.get_prediction(start=pd.to_datetime('2022-01-01'), dynamic=False)
+pred_ci = pred.conf_int()
+ax = y['2021-01-01':].plot(label='Observed')
+pred.predicted_mean.plot(ax=ax, label='Forecast',alpha=.7,figsize=(12,4))
+plt.savefig('otm8.png',bbox_inches='tight')</code></pre>
+</div>
+
+<h2 id="perf" class="major">Forecasting the following 6 months</h2>
+<p style = "font-size:18px">We can observe our forecast follows the seasonality of increase in shipments during summer, green line represents the amount of shipments for the first 6 months of 2023</p>
+<div class="row">
+    <div class="col-6 col-12-medium">
+        <ul class="actions">
+<iframe src="images/otm9.png" height="300" width="700"frameBorder="0"></iframe>
+</ul>
+</div>
+<pre><code style = "font-size:14px">pred_uc = results.get_forecast(steps=9)
+pred_ci = pred_uc.conf_int()
+ax = y.plot(label='Observed',figsize=(12,4), color = 'black')
+pred_uc.predicted_mean.plot(ax=ax,label='Forecast', color='green')
+ax.fill_between(pred_ci.index,
+               pred_ci.iloc[:,0],
+               pred_ci.iloc[:,1],color='k',alpha=.25)
+plt.legend()
+plt.savefig('otm9.png',bbox_inches='tight')
+plt.show()</code></pre>
+</div>
+
+<h2 class="major">Calculating RMSPE and MAPE</h2>
+<p style = "font-size:18px">Finally I am going to calculate the RMSPE and MAPE so that we can confirm if our model is a succesfull one</p>
+<p style = "font-size:18px">Based on the calculated RMSPE and MAPE we can conclude our model is a succesfull one, allthough our values are on the higher end (around 15%) this is because of the small sample of data we working with. If we had data coming back a few more years this would be more accurate</p>
+<pre><code style = "font-size:14px">rmspe = (np.sqrt(np.mean(np.square((y_truth - y_forecasted) / y_truth)))) * 100
+print(rmspe)
+mape = np.mean(np.abs((y_truth - y_forecasted) / y_truth))*100
+print(mape)</code></pre>
+<iframe src="images/otm13.JPG" height="200" width="700"frameBorder="0"></iframe>
+
+
+
+
+
+
+
+
+
+
+		<ul class="actions">
+			<li><a href="#" class="button primary">BACK TOP</a></li>
+			<li><a href="index.html" class="button">PORTFOLIO</a></li>
+		</ul>
+
+</body>
+</html>
+
+
+		<!-- Scripts -->
+			<script src="assets/js/jquery.min.js"></script>
+			<script src="assets/js/jquery.scrollex.min.js"></script>
+			<script src="assets/js/jquery.scrolly.min.js"></script>
+			<script src="assets/js/browser.min.js"></script>
+			<script src="assets/js/breakpoints.min.js"></script>
+			<script src="assets/js/util.js"></script>
+			<script src="assets/js/main.js"></script>
+
+	</body>
+</html>
