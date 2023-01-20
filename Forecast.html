@@ -20,12 +20,10 @@
 			</header>
 		<!-- Wrapper -->
 			<div id="wrapper">				
-				<!-- Main -->
 					<section id="main" class="wrapper">
 						<div class="inner">
 							<h1 class="major">Forecasting and visualizations on logistics</h1>
 							<p style = "font-size:18px">In this notebook, we'll take a look at trends for 2021 and 2022 and try to forecast shipment volume for 2023.</p>				
-					<section>
 						<h2>Roadmap</h2>
 							<div class="row">
 								<div class="col-6 col-12-medium">
@@ -40,8 +38,8 @@
 									<li style = "font-size:16px"><a href="#shot3"><u>Comparing forecast vs observed values</u></a></li>
 									<li style = "font-size:16px"><a href="#perf"><u>Forecasting the following 6 months</u></a></li>
 							    	</ul>
+                                </div>
 							</div>	
-					<section>
 							<div class="inner">
 								<h2 id="data" class="major">The Data</h2>
                                 <p style = "font-size:18px; line-height:.1;"> We'll be using 2021-2022 data to construct our visualizations. Lets take a look at what we're working with.</p>
@@ -68,7 +66,7 @@ df.dropna(inplace=True)
 df['Start Time'] = df['Start Time'].astype(str)
 df['Start Time'] = df['Start Time'].str.split().apply(lambda x: ' '.join(x[:2]))
 df.head()</code></pre>
-                                <img src="images/dfOTM.png" class="centerImage" alt="CH Logo">
+<iframe src="images/dfOTM.png" height="300" width="900"frameBorder="0"></iframe>
                                 <p style = "font-size:18px">Our data contains info on 27636 entries. Now lets create a list for all destinations and split the Start Time column into Year,YM and Month</p>
                                 <pre><code style = "font-size:12px">df['Dest Location Name'].nunique()
 list_scode = list(set(df['Dest Location Name']))
@@ -94,80 +92,62 @@ print(df_monthly)
 df_monthly3 = df_monthly3.reset_index(name='PK')
 df_monthly3.head()</code>
 </div>
-							 <section>
-                                <div class="inner">
-									<h2 id="build" class="major">Total shipments by month for 2021 and 2022</h2>
-                                    <p style = "font-size:18px; line-height:1;">The graph illustrates the monthly total of shipments for 2021 and 2022. It shows a pattern where shipments increase during the summer months and decrease in the winter. We plan to confirm this hypothesis by using a SARIMAX model to predict future years' shipments.</p>
-                                </div>
-                                <div class="row">
-                                    <div class="col-6 col-12-medium">
-                                        <ul class="actions">
-								        	<pre><code style = "font-size:14px">fig, ax = plt.subplots(figsize=(10,5))
+<h2 id="build" class="major">Total shipments by month for 2021 and 2022</h2>
+<p style = "font-size:18px">The graph illustrates the monthly total of shipments for 2021 and 2022. It shows a pattern where shipments increase during the summer months and decrease in the winter. We plan to confirm this hypothesis by using a SARIMAX model to predict future years' shipments.</p>
+
+
+
+<div class="row">
+    <div class="col-6 col-12-medium">
+        <ul class="actions">
+            <pre><code style = "font-size:12px">fig, ax = plt.subplots(figsize=(10,5))
 sns.barplot(x='Month', y='PK', hue='Year', data=df_monthly3,palette='viridis')
-                                        
+                                                        
 plt.title('Count of shipments over Months, Stacked by Year')
 ax.set_ylabel('Amount of shipments')
 ax.set_xlabel('Months')
 plt.show()
-</code>
-                                        </ul>
-                                    </div>
-                                    <iframe src="images/otm2.png" height="350" width="700"frameBorder="0"></iframe>
-                                </div>
-                                <div>
-                                <h2 id="plot" class="major">Top 25 Receiving locations</h2>
-                                <p style = "font-size:18px; line-height:1;">The graph depicts the top 25 destinations with the most shipments over time, with CCBC South Metro being the most frequently used lane. It also highlights a trend of increased volume during the summer months. In 2021, the shipment trends for many destinations appear similar, but in 2022, the lines are more divergent and difficult to distinguish.</p>
-                                <pre><code style = "font-size:14px">df_22 = df_monthly[df_monthly['Year']=='2022']
-
-sns.set_style('darkgrid')
-sns.set(rc={'figure.figsize':(28,10)})
-                                    
-ax = sns.lineplot(data=df_monthly, x ='YM', y = 'PK',
-                  hue='Dest Location Name', palette='viridis',
-                  legend='full', lw=3)
-                                    
-ax.xaxis.set_major_locator(ticker.MultipleLocator(4))
-plt.legend(bbox_to_anchor=(1, 1))
-plt.ylabel('Shipments')
-plt.xlabel('Year-Month')
-plt.title('Shipments by top 25 destinations.')
-plt.savefig('shipments_by_destination.png',bbox_inches='tight')
-plt.show()</code>
-</pre>
-                                <iframe src="images/otm3.png" height="450" width="1350"frameBorder="0"></iframe>
-                            </div>
-                            <p></p>
-
+                </code></pre>
+        </ul>
+    </div>
+    <div class="col-6 col-12-medium">
+        <ul class="actions stacked">
+            <iframe src="images/otm2.png" height="300" width="450"frameBorder="0"></iframe>
+        </ul>
+    </div>
+</div>
 <h2 class="major">Comparing one by one with Small Multiple Time Series.</h2>
 									<p style = "font-size:18px">With the Seaborn library, we can do the small multiple time series. The idea behind these plots is to plot each line one by one while still comparing them with the silhouette of the other lines. The code on the official website link is here.</p>
                                     <p style = "font-size:18px">You can zoom into the image to get a better look at each plot.</p>
+
                                     <div class="row">
                                         <div class="col-6 col-12-medium">
                                             <ul class="actions">
-                                                <pre><code style = "font-size:14px">g = sns.relplot(data = df_monthly, x = "YM", y = "PK",
+                                                <pre><code style = "font-size:12px">g = sns.relplot(data = df_monthly, x = "YM", y = "PK",
 col = "Dest Location Name", hue = "Dest Location Name",
 kind = "line", palette = "Spectral",   
 linewidth = 4, zorder = 5,
 ol_wrap = 5, height = 3, aspect = 1.5, legend = False
 )
-                                                                            
-for time, ax in g.axes_dict.items():
     ax.text(.1, .85, time,
         transform = ax.transAxes, fontweight="bold"
            )
-    sns.lineplot(data = df_monthly, x = "YM", y = "PK", units="Dest Location Name",
+sns.lineplot(data = df_monthly, x = "YM", y = "PK", units="Dest Location Name",
                 estimator = None, color= ".7", linewidth=1, ax=ax
-                )
-                                                                            
+                ) 
 ax.set_xticks('')
 g.set_titles("")
 g.set_axis_labels("", "Shipments")
 g.tight_layout()
 plt.savefig('otm4',bbox_inches='tight')
-plt.show()</code>
+plt.show()</code></pre>
                                             </ul>
                                         </div>
-                                        <iframe src="images/otm4.png" height="700" width="700"frameBorder="0"></iframe>
+                                        <div class="col-6 col-12-medium">
+                                            <ul class="actions stacked">
+                                                <iframe src="images/otm4.png" height="350" width="700"frameBorder="0"></iframe>
+                                            </ul>
+                                        </div>
                                     </div>
 
 <h2 class="major">Fancy the bar plot with Circular Bar Plot (Race Track Plot)</h2>
@@ -487,19 +467,11 @@ print(mape)</code></pre>
 <iframe src="images/otm13.JPG" height="200" width="700"frameBorder="0"></iframe>
 
 
-
-
-
-
-
-
-
-
 		<ul class="actions">
 			<li><a href="#" class="button primary">BACK TOP</a></li>
 			<li><a href="index.html" class="button">PORTFOLIO</a></li>
 		</ul>
-
+</div>
 </body>
 </html>
 
