@@ -66,7 +66,7 @@ df.dropna(inplace=True)
 df['Start Time'] = df['Start Time'].astype(str)
 df['Start Time'] = df['Start Time'].str.split().apply(lambda x: ' '.join(x[:2]))
 df.head()</code></pre>
-<iframe src="images/dfOTM.png" height="300" width="900"frameBorder="0"></iframe>
+<iframe src="images/dfOTM.png" height="400" width="1200"frameBorder="0"></iframe>
                                 <p style = "font-size:18px">Our data contains info on 27636 entries. Now lets create a list for all destinations and split the Start Time column into Year,YM and Month</p>
                                 <pre><code style = "font-size:12px">df['Dest Location Name'].nunique()
 list_scode = list(set(df['Dest Location Name']))
@@ -117,13 +117,9 @@ plt.show()
     </div>
 </div>
 <h2 class="major">Comparing one by one with Small Multiple Time Series.</h2>
-									<p style = "font-size:18px">With the Seaborn library, we can do the small multiple time series. The idea behind these plots is to plot each line one by one while still comparing them with the silhouette of the other lines. The code on the official website link is here.</p>
-                                    <p style = "font-size:18px">You can zoom into the image to get a better look at each plot.</p>
-
-                                    <div class="row">
-                                        <div class="col-6 col-12-medium">
-                                            <ul class="actions">
-                                                <pre><code style = "font-size:12px">g = sns.relplot(data = df_monthly, x = "YM", y = "PK",
+<p style = "font-size:18px">With the Seaborn library, we can do the small multiple time series. The idea behind these plots is to plot each line one by one while still comparing them with the silhouette of the other lines. The code on the official website link is here.</p>
+<p style = "font-size:18px">You can zoom into the image to get a better look at each plot.</p>
+<pre><code style = "font-size:12px">g = sns.relplot(data = df_monthly, x = "YM", y = "PK",
 col = "Dest Location Name", hue = "Dest Location Name",
 kind = "line", palette = "Spectral",   
 linewidth = 4, zorder = 5,
@@ -141,22 +137,15 @@ g.set_axis_labels("", "Shipments")
 g.tight_layout()
 plt.savefig('otm4',bbox_inches='tight')
 plt.show()</code></pre>
-                                            </ul>
-                                        </div>
-                                        <div class="col-6 col-12-medium">
-                                            <ul class="actions stacked">
-                                                <iframe src="images/otm4.png" height="350" width="700"frameBorder="0"></iframe>
-                                            </ul>
-                                        </div>
-                                    </div>
-
+<iframe src="images/otm4.png" height="550" width="900"frameBorder="0"></iframe>
+<p></p>
 <h2 class="major">Fancy the bar plot with Circular Bar Plot (Race Track Plot)</h2>
 									<p style = "font-size:18px">The concept of a Circular Bar Plot (aka Race Track Plot) is so simple because it is just bar plots in a circle. We can plot Circular Bar Plot monthly and then make a photo collage to compare the process along the time.</p>
                                     <p style = "font-size:18px">The picture below shows an example of a Circular Bar Plot we are going to create. The disadvantage of this chart is that it is hard to compare between categories. By the way, it is a good choice for getting attention with an eye-catching effect.</p>
                                     <div class="row">
                                         <div class="col-6 col-12-medium">
                                             <ul class="actions">
-                                    <pre><code style = "font-size:14px">max_val = max(df_19['PK'])*1.001        #set max value
+                                    <pre><code style = "font-size:12px">max_val = max(df_19['PK'])*1.001        #set max value
 pal = list(sns.color_palette(palette='viridis', n_colors=len(list_add)).as_hex())
         
 def circular_bar(input_df, column_name, title):
@@ -178,9 +167,9 @@ plt.title("Average PM2.5 // " + title)
 return ax</code></pre>
 </ul>
 </div>
-<iframe src="images/cir_bar_4.png" height="550" width="550"frameBorder="0"></iframe>
+<iframe src="images/cir_bar_4.png" height="450" width="450"frameBorder="0"></iframe>
                                     </div>
-<pre><code style = "font-size:14px">list_month19 = list(set(df_19['Month']))
+<pre><code style = "font-size:12px">list_month19 = list(set(df_19['Month']))
 list_YM19 = list(set(df_19['YM']))
 list_YM19.sort()
 listdf_monthly19 = [df_19[df_19['Month']==str(i)] for i in list_month19]
@@ -199,7 +188,7 @@ for i in order:
             <ul class="actions">
     <iframe src="images/Collage_cir_bar.jpg" height="600" width="700"frameBorder="0"></iframe>
 </ul></div>
-<pre><code style = "font-size:14px">def get_collage(cols_n, rows_n, width, height, input_sname, save_name):
+<pre><code style = "font-size:12px">def get_collage(cols_n, rows_n, width, height, input_sname, save_name):
 c_width = width//cols_n
 c_height = height//rows_n
 size = c_width, c_height
@@ -230,7 +219,7 @@ get_collage(3, 2, 2592, 3456, keep_sname, 'Collage_cir_bar.jpg')</code></pre>
     <div class="row">
         <div class="col-6 col-12-medium">
             <ul class="actions">
-    <pre><code style = "font-size:14px">sns.set_style('darkgrid')
+    <pre><code style = "font-size:12px">sns.set_style('darkgrid')
 sns.set(rc={'figure.figsize':(14,8)})
         
 sns.relplot(x="Distance", y="Total Cost", hue="Source City", size="Stops",
@@ -244,16 +233,15 @@ plt.show()
 
 
 
-
 </code></pre>
 </ul></div>
-<iframe src="images/otm5.png" height="600" width="700"frameBorder="0"></iframe>
+<iframe src="images/otm5.png" height="400" width="500"frameBorder="0"></iframe>
     </div>
 
 
 		<h2 id="shot" class="major">Plotting a map with all shipments</h2>
 		<p style = "font-size:18px">With everything prepped we can now create a more helpful map to visualize every shipment lane, you can zoom and filter using the left panel.</p>
-        <pre><code style = "font-size:14px">data = pd.read_excel('OTMMap.xlsx')
+        <pre><code style = "font-size:12px">data = pd.read_excel('OTMMap.xlsx')
 data['city_pair'] = data['Source City'].str.title() + ' - ' + data['Dest City'].str.title()
 Start_Lat = data['Start_Lat']
 Start_Lng = data['Start_Lng']
@@ -291,12 +279,12 @@ for i, row in data.iterrows():
     fig.data[i].name = row['city_pair']
             
 pio.write_html(fig, file='figure2.html', auto_open=True)</code></pre>
-		<iframe src="images/figure2.html" height="700" width="1400"frameBorder="0"></iframe>
+		<iframe src="images/figure2.html" height="700" width="1100"frameBorder="0"></iframe>
 			<p></p>
 		<h2 id="calc" class="major">Applying angles with a Radar chart</h2>
         <p style = "font-size:18px">We can set the angular axis on the scatter plot in Plotly to create an interactive Radar Chart. Each month will be selected as a variable on the circle. For example, in this article, we will create a radar chart comparing the average monthly shipments of the 25 destinations in 2022.</p>
 		<p style = "font-size:18px">Create Radar Chart. A good thing about using Plotly is that the Radar chart is interactive. So we can easily filter the chart.</p>
-		<iframe src="images/figure3.html" height="900" width="900"frameBorder="0"></iframe>
+		<iframe src="images/figure3.html" height="800" width="800"frameBorder="0"></iframe>
 
 
 
